@@ -1,0 +1,106 @@
+---
+- name: Install a portable Minecraft server
+  hosts: all
+  become: true
+  gather_facts: true
+  vars:
+    server: "{{ lookup('ansible.builtin.file', playbook_dir + '/../server.json') | from_json }}"
+    install_dir: "/opt/mc/{{ server.name }}"
+  tasks:
+    - name: Check the target platform and memory
+      ansible.builtin.assert:
+        that:
+          - ansible_facts['distribution'] in ['Ubuntu', 'Debian']
+          - (ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] in ['24.04']) or (ansible_facts['distribution'] == 'Debian' and ansible_facts['distribution_major_version'] in ['12', '13'])
+          - server.name is match('^[a-z][a-z0-9-]{0,39}$')
+          - server.eula | bool
+          - ansible_facts['memtotal_mb'] >= (server.memory | int + 1) * 1024
+        fail_msg: Use a supported VPS with at least heap + 1 GiB RAM; accept the Minecraft EULA.
+    - name: Check existing Docker Compose
+      ansible.builtin.command: docker compose version
+      register: existing_compose
+      failed_when: false
+      changed_when: false
+      check_mode: false
+    - name: Install Docker when Compose is not available
+      when: existing_compose.rc != 0
+      block:
+        - name: Install repository prerequisites
+          ansible.builtin.apt:
+            name: [ca-certificates, python3-apt]
+            state: present
+            update_cache: true
+        - name: Create APT keyring directory
+          ansible.builtin.file:
+            path: /etc/apt/keyrings
+            state: directory
+            mode: '0755'
+        - name: Download the official Docker signing key
+          ansible.builtin.get_url:
+            url: "https://download.docker.com/linux/{{ ansible_facts['distribution'] | lower }}/gpg"
+            dest: /etc/apt/keyrings/docker.asc
+            mode: '0644'
+        - name: Configure the Docker package repository
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/{{ ansible_facts['distribution'] | lower }} {{ ansible_facts['distribution_release'] }} stable"
+            filename: mc-docker
+            state: present
+        - name: Install Docker Engine and Compose v2
+          ansible.builtin.apt:
+            name: [docker-ce, docker-ce-cli, containerd.io, docker-compose-plugin]
+            state: present
+            update_cache: true
+    - name: Enable Docker at boot
+      ansible.builtin.systemd_service:
+        name: docker
+        enabled: true
+        state: started
+      when: not ansible_check_mode
+    - name: Create the server directory
+      ansible.builtin.file:
+        path: "{{ install_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+    - name: Create persistent data and backup directories
+      ansible.builtin.file:
+        path: "{{ install_dir }}/{{ item }}"
+        state: directory
+        mode: '0750'
+      loop: [data, backups]
+    - name: Copy server configuration without evaluating its contents
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../{{ item }}"
+        dest: "{{ install_dir }}/{{ item }}"
+        mode: '0600'
+      loop: [compose.yaml, server.json]
+    - name: Copy local credentials
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../.env"
+        dest: "{{ install_dir }}/.env"
+        mode: '0600'
+      no_log: true
+      when: not ansible_check_mode
+    - name: Install the management script
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../manage.sh"
+        dest: "{{ install_dir }}/manage.sh"
+        mode: '0700'
+    - name: Validate Compose before starting containers
+      ansible.builtin.command: docker compose config --quiet
+      args:
+        chdir: "{{ install_dir }}"
+      changed_when: false
+      when: not ansible_check_mode
+    - name: Start the server and wait for health
+      ansible.builtin.command: docker compose up -d --remove-orphans --wait --wait-timeout 900
+      args:
+        chdir: "{{ install_dir }}"
+      register: started
+      changed_when: "'Started' in started.stderr or 'Created' in started.stderr or 'Recreated' in started.stderr"
+      when: not ansible_check_mode
+    - name: Show the management location
+      ansible.builtin.debug:
+        msg: "Server ready. Run sudo bash {{ install_dir }}/manage.sh status. Allow TCP {{ server.port }} in your provider firewall."
+      when: not ansible_check_mode

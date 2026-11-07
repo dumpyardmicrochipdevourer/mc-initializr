@@ -1,0 +1,11 @@
+.git/
+.idea/
+.vscode/
+target/
+.env
+.env.*
+*.log
+__pycache__/
+.venv/
+.cache/
+.ansible/

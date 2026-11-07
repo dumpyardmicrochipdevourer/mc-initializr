@@ -1,0 +1,18 @@
+package su.pathos.initializer.data.catalog.impl;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import su.pathos.initializer.data.catalog.CatalogOption;
+
+import java.util.Locale;
+
+public enum GameMode implements CatalogOption {
+    SURVIVAL, CREATIVE, ADVENTURE, SPECTATOR;
+
+    @Override
+    public String id() { return name().toLowerCase(Locale.ROOT); }
+
+    @JsonCreator
+    public static GameMode fromId(String id) {
+        return CatalogOption.fromId(GameMode.class, id);
+    }
+}
