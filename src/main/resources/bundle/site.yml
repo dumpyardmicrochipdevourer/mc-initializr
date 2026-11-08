@@ -100,13 +100,37 @@
         chdir: "{{ install_dir }}"
       changed_when: false
       when: not ansible_check_mode
-    - name: Start the server and wait for health
-      ansible.builtin.command: docker compose up -d --remove-orphans --wait --wait-timeout 900
+    - name: Download Docker images
+      ansible.builtin.command: docker compose pull --policy missing
+      args:
+        chdir: "{{ install_dir }}"
+      async: 1800
+      poll: 10
+      register: pulled
+      changed_when: "'Pulled' in pulled.stderr"
+      when: not ansible_check_mode
+    - name: Start the Minecraft container
+      ansible.builtin.command: docker compose up -d --remove-orphans minecraft
       args:
         chdir: "{{ install_dir }}"
       register: started
       changed_when: "'Started' in started.stderr or 'Created' in started.stderr or 'Recreated' in started.stderr"
       when: not ansible_check_mode
+    - name: Wait for Minecraft downloads, world preparation and health
+      ansible.builtin.command: docker compose up -d --wait --wait-timeout 900 minecraft
+      args:
+        chdir: "{{ install_dir }}"
+      async: 960
+      poll: 10
+      changed_when: false
+      when: not ansible_check_mode
+    - name: Start the backup service
+      ansible.builtin.command: docker compose up -d --wait --wait-timeout 120 backup
+      args:
+        chdir: "{{ install_dir }}"
+      register: backup_started
+      changed_when: "'Started' in backup_started.stderr or 'Created' in backup_started.stderr or 'Recreated' in backup_started.stderr"
+      when: not ansible_check_mode and server.backup != 'none'
     - name: Show the management location
       ansible.builtin.debug:
         msg: "Server ready. Run sudo bash {{ install_dir }}/manage.sh status. Allow TCP {{ server.port }} in your provider firewall."
