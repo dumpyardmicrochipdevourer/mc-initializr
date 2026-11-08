@@ -1,3 +1,9 @@
+# soooooo jinja doesnt have double type
+# but float in jinja is 64 bit like double in java
+
+# jinjas float uses python double-precision flaot => its just a java double
+# ??????
+
 ---
 - name: Install a portable Minecraft server
   hosts: all
@@ -14,7 +20,7 @@
           - (ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] in ['24.04']) or (ansible_facts['distribution'] == 'Debian' and ansible_facts['distribution_major_version'] in ['12', '13'])
           - server.name is match('^[a-z][a-z0-9-]{0,39}$')
           - server.eula | bool
-          - ansible_facts['memtotal_mb'] >= (server.memory | int + 1) * 1024
+          - ansible_facts['memtotal_mb'] >= (server.memory | float + 1) * 1024
         fail_msg: Use a supported VPS with at least heap + 1 GiB RAM; accept the Minecraft EULA.
     - name: Check existing Docker Compose
       ansible.builtin.command: docker compose version

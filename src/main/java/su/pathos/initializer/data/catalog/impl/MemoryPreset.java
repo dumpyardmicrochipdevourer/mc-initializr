@@ -1,11 +1,19 @@
 package su.pathos.initializer.data.catalog.impl;
 
-public enum MemoryPreset {
-    GIB_2(2), GIB_4(4), GIB_6(6), GIB_8(8), GIB_12(12), GIB_16(16), GIB_32(32);
+import java.util.List;
+import java.util.stream.IntStream;
 
-    private final int gib;
+public final class MemoryPreset {
+    public static final int MIN_GIB = 1;
+    public static final int MAX_GIB = 32;
+    public static final double DEFAULT_GIB = 4;
 
-    MemoryPreset(int gib) { this.gib = gib; }
+    private MemoryPreset() {}
 
-    public int gib() { return gib; }
+
+    // to double (for ui)
+    // ram is now double
+    public static List<Double> values() {
+        return IntStream.rangeClosed(MIN_GIB * 2, MAX_GIB * 2).mapToObj(value -> value / 2.0).toList();
+    }
 }

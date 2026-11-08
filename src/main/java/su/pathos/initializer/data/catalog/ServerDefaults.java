@@ -6,7 +6,8 @@ public record ServerDefaults(
     String name,
     ServerEngine engine,
     MinecraftVersion version,
-    int memory,
+    // ram is now double so we can get 1.5 ... etc
+    double memory,
     int port,
     int players,
     int viewDistance,
@@ -23,7 +24,7 @@ public record ServerDefaults(
     public static ServerDefaults standard() {
         return new ServerDefaults(
             "my-world", ServerEngine.PAPER, MinecraftVersion.V26_1_2,
-            MemoryPreset.GIB_4.gib(), 25565, 20, 10, Difficulty.NORMAL, GameMode.SURVIVAL,
+            MemoryPreset.DEFAULT_GIB, 25565, 20, 10, Difficulty.NORMAL, GameMode.SURVIVAL,
             "A Minecraft server", false, "", BackupDestination.NONE, BackupInterval.DAILY, 7, false
         );
     }

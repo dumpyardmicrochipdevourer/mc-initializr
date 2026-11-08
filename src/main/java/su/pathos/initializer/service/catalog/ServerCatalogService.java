@@ -20,11 +20,11 @@ public class ServerCatalogService {
             ids(MinecraftVersion.values()),
             ids(BackupInterval.values()),
             Arrays.stream(MinecraftVersion.values())
-                .map(version -> new VersionResponse(version.id(), version.javaVersion())).toList(),
+                .map(version -> new VersionResponse(version.id(), version.javaVersions())).toList(),
             ids(BackupDestination.values()),
             ids(Difficulty.values()),
             ids(GameMode.values()),
-            Arrays.stream(MemoryPreset.values()).map(MemoryPreset::gib).toList(),
+            MemoryPreset.values(),
             ServerDefaults.standard()
         );
     }

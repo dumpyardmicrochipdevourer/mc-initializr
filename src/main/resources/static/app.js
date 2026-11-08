@@ -1,5 +1,5 @@
 import {translations, translate, pickLanguage} from './i18n.js';
-import {restoreConfig, javaVersionFor} from './catalog.js';
+import {restoreConfig, javaVersionFor, versionsFor} from './catalog.js';
 
 const form = document.querySelector('#config');
 const field = name => form.elements.namedItem(name);
@@ -55,6 +55,7 @@ function applyLanguage() {
 }
 
 function update() {
+  syncVersions();
   const c = config();
   document.querySelector('#backup-settings').hidden = c.backup === 'none';
   document.querySelector('#whitelist-settings').hidden = !c.whitelist;
@@ -65,7 +66,7 @@ function update() {
   const engine = catalog?.engines.find(item => item.id === c.engine)?.name || c.engine;
   document.querySelector('#selection').textContent = `${engine} · ${c.version} · ${t('memoryOption', c.memory)}`;
   document.querySelector('#selection-note').textContent = t(c.backup === 's3' ? 'backupS3' : c.backup === 'local' ? 'backupLocal' : 'backupNone');
-  document.querySelector('#runtime-note').textContent = t('runtimeNote', javaVersionFor(catalog, c.version), c.memory + 2);
+  document.querySelector('#runtime-note').textContent = t('runtimeNote', javaVersionFor(catalog, c.version, c.engine), c.memory);
   document.querySelector('#backup-description').textContent = t(c.backup === 's3' ? 'backupS3Note' : 'backupLocalNote');
   try {
     const {eula, ...safe} = c;
@@ -182,7 +183,17 @@ for (const button of document.querySelectorAll('[data-lang]')) button.addEventLi
   try { localStorage.setItem(languageKey, language); } catch {}
 });
 
+function syncVersions(selected = field('version').value) {
+  const versions = versionsFor(catalog, field('engine').value);
+  const current = Array.from(field('version').options, option => option.value);
+  if (current.join() !== versions.join()) fillSelect('version', versions);
+  field('version').value = versions.includes(selected) ? selected
+    : versions.includes(catalog.defaults.version) ? catalog.defaults.version : versions[0];
+}
+
 function applyConfig(config) {
+  field('engine').value = config.engine;
+  syncVersions(config.version);
   for (const [key, value] of Object.entries(config)) {
     if (key === 'backup') continue;
     const input = field(key);

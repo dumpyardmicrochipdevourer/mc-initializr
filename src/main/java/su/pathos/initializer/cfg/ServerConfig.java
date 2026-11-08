@@ -14,7 +14,8 @@ public class ServerConfig {
     public String name = DEFAULTS.name();
     @NotNull public ServerEngine engine = DEFAULTS.engine();
     @NotNull public MinecraftVersion version = DEFAULTS.version();
-    @Min(2) @Max(32) public int memory = DEFAULTS.memory();
+    // just min/max for double values
+    @DecimalMin("1") @DecimalMax("32") public double memory = DEFAULTS.memory();
     @Min(1024) @Max(65535) public int port = DEFAULTS.port();
     @Min(1) @Max(200) public int players = DEFAULTS.players();
     @Min(2) @Max(24) public int viewDistance = DEFAULTS.viewDistance();
@@ -34,5 +35,9 @@ public class ServerConfig {
     @JsonIgnore
     public boolean isWhitelistConfigured() { return !whitelist || (whitelistPlayers != null && !whitelistPlayers.isBlank()); }
 
-    public int javaVersion() { return version.javaVersion(); }
+    @AssertTrue(message = "The selected engine does not support this Minecraft version")
+    @JsonIgnore
+    public boolean isVersionSupported() { return engine == null || version == null || version.supports(engine); }
+
+    public int javaVersion() { return version.javaVersion(engine); }
 }

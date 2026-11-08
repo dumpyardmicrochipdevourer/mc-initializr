@@ -12,6 +12,6 @@ public record CatalogResponse(
     List<String> backupDestinations,
     List<String> difficulties,
     List<String> gameModes,
-    List<Integer> memoryOptions,
+    List<Double> memoryOptions,
     ServerDefaults defaults
 ) {}

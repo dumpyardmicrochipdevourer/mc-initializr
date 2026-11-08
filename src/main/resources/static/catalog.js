@@ -1,7 +1,11 @@
-export function javaVersionFor(catalog, version) {
-  const details = catalog.versionDetails.find(item => item.id === version);
-  if (!details) throw new Error(`Missing Java requirement for ${version}`);
-  return details.javaVersion;
+export function versionsFor(catalog, engine) {
+  return catalog.versionDetails.filter(item => Object.hasOwn(item.javaVersions, engine)).map(item => item.id);
+}
+
+export function javaVersionFor(catalog, version, engine) {
+  const java = catalog.versionDetails.find(item => item.id === version)?.javaVersions[engine];
+  if (!java) throw new Error(`Missing Java requirement for ${engine} ${version}`);
+  return java;
 }
 
 export function restoreConfig(catalog, saved) {
@@ -24,6 +28,10 @@ export function restoreConfig(catalog, saved) {
     if (typeof value === 'number' && !Number.isFinite(value)) continue;
     if (choices[key] && !choices[key].includes(value)) continue;
     restored[key] = value;
+  }
+  const versions = versionsFor(catalog, restored.engine);
+  if (!versions.includes(restored.version)) {
+    restored.version = versions.includes(catalog.defaults.version) ? catalog.defaults.version : versions[0];
   }
   return restored;
 }

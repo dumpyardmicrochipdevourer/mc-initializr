@@ -7,6 +7,7 @@ import su.pathos.initializer.service.bundle.files.BundleFileGenerator;
 import su.pathos.initializer.service.bundle.util.BundleResourceReader;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Map;
 
 @Component
@@ -23,7 +24,7 @@ public class ReadmeFileGenerator implements BundleFileGenerator {
         String readme = resources.read("README.md")
             .replace("@@NAME@@", config.name)
             .replace("@@PORT@@", Integer.toString(config.port))
-            .replace("@@MEMORY@@", Integer.toString(config.memory + 2))
+            .replace("@@MEMORY@@", BigDecimal.valueOf(config.memory + 2).stripTrailingZeros().toPlainString())
             .replace("@@BACKUP@@", config.backup.id());
         return Map.of("README.md", readme);
     }

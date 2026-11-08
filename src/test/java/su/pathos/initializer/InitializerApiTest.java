@@ -29,11 +29,17 @@ class InitializerApiTest {
     @Test
     void catalog() throws Exception {
         var response = mvc.perform(get("/api/catalog")).andExpect(status().isOk())
+            .andExpect(jsonPath("$.versionDetails[0].javaVersions.PAPER").value(25))
             .andReturn().getResponse().getContentAsString();
         var catalog = json.readTree(response);
         var config = json.readTree(preview("{}").get("server.json").asText());
         assertThat(config).isEqualTo(catalog.get("defaults"));
         assertThat(catalog.get("engines").isEmpty()).isFalse();
+        var memory = catalog.get("memoryOptions");
+        assertThat(memory.size()).isEqualTo(63);
+        assertThat(memory.get(0).asDouble()).isEqualTo(1);
+        assertThat(memory.get(1).asDouble()).isEqualTo(1.5);
+        assertThat(memory.get(62).asDouble()).isEqualTo(32);
         assertThat(catalog.get("versionDetails").size()).isEqualTo(catalog.get("versions").size());
     }
 
@@ -63,11 +69,36 @@ class InitializerApiTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"name,../world", "engine,unknown", "version,unknown"})
+    @CsvSource({"name,../world", "engine,unknown", "version,unknown", "memory,0.5", "memory,32.5"})
     void validation(String field, String value) throws Exception {
         mvc.perform(post("/api/preview").contentType("application/json")
                 .content(json.writeValueAsString(Map.of(field, value))))
             .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors." + field).exists());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1,1024", "1.5,1536", "32,32768"})
+    void memory(double gib, int mib) throws Exception {
+        var files = preview(json.writeValueAsString(Map.of("memory", gib)));
+        assertThat(files.get("compose.yaml").asText()).contains("MEMORY: '" + mib + "M'");
+        assertThat(json.readTree(files.get("server.json").asText()).get("memory").asDouble()).isEqualTo(gib);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"VANILLA,1.16.5,8", "PAPER,1.16.5,16", "VANILLA,1.17.1,16",
+        "VANILLA,1.18.2,17", "VANILLA,1.20.5,21", "VANILLA,1.2.5,8",
+        "PAPER,1.12.2,11", "PAPER,1.8.8,8", "PAPER,26.3,25"})
+    void runtime(String engine, String version, int java) throws Exception {
+        var files = preview(json.writeValueAsString(Map.of("engine", engine, "version", version)));
+        assertThat(files.get("compose.yaml").asText()).contains("itzg/minecraft-server:java" + java + "\n");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"PAPER,1.8.9", "FABRIC,1.12.2"})
+    void unsupportedVersion(String engine, String version) throws Exception {
+        mvc.perform(post("/api/preview").contentType("application/json")
+                .content(json.writeValueAsString(Map.of("engine", engine, "version", version))))
+            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors.versionSupported").exists());
     }
 
     @Test

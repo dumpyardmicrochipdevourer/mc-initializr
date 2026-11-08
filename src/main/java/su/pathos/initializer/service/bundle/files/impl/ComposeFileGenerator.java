@@ -36,7 +36,7 @@ public class ComposeFileGenerator implements BundleFileGenerator {
                       EULA: 'TRUE'
                       TYPE: %s
                       VERSION: %s
-                      MEMORY: '%dG'
+                      MEMORY: '%dM'
                       MAX_PLAYERS: '%d'
                       VIEW_DISTANCE: '%d'
                       DIFFICULTY: %s
@@ -64,7 +64,7 @@ public class ComposeFileGenerator implements BundleFileGenerator {
                         max-file: '3'
                 """.formatted(
                     config.name, config.javaVersion(), config.port, quote(config.engine.id()), quote(config.version.id()),
-                    config.memory, config.players, config.viewDistance, quote(config.difficulty.id()), quote(config.gameMode.id()),
+                    Math.round(config.memory * 1024), config.players, config.viewDistance, quote(config.difficulty.id()), quote(config.gameMode.id()),
                     quote(config.motd), config.whitelist, config.whitelist, quote(config.whitelist ? config.whitelistPlayers : "")
                 );
         if (config.backup == BackupDestination.NONE) return text;
