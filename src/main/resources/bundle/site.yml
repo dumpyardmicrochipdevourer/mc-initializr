@@ -1,9 +1,3 @@
-# soooooo jinja doesnt have double type
-# but float in jinja is 64 bit like double in java
-
-# jinjas float uses python double-precision flaot => its just a java double
-# ??????
-
 ---
 - name: Install a portable Minecraft server
   hosts: all
@@ -13,15 +7,22 @@
     server: "{{ lookup('ansible.builtin.file', playbook_dir + '/../server.json') | from_json }}"
     install_dir: "/opt/mc/{{ server.name }}"
   tasks:
-    - name: Check the target platform and memory
+    - name: Check the target platform and configuration
       ansible.builtin.assert:
         that:
           - ansible_facts['distribution'] in ['Ubuntu', 'Debian']
           - (ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_version'] in ['24.04']) or (ansible_facts['distribution'] == 'Debian' and ansible_facts['distribution_major_version'] in ['12', '13'])
           - server.name is match('^[a-z][a-z0-9-]{0,39}$')
           - server.eula | bool
-          - ansible_facts['memtotal_mb'] >= (server.memory | float + 1) * 1024
-        fail_msg: Use a supported VPS with at least heap + 1 GiB RAM; accept the Minecraft EULA.
+        fail_msg: Use a supported VPS and a valid server name; accept the Minecraft EULA.
+    - name: Warn when available memory is below the recommended minimum
+      ansible.builtin.debug:
+        msg: >-
+          WARNING: This VPS has {{ ansible_facts['memtotal_mb'] }} MiB RAM.
+          The selected Java heap is {{ server.memory }} GiB; allow at least 1 additional GiB for the system.
+          Installation will continue, but the server may run out of memory.
+      # jinja's float uses python double-precision flaot => its just a java double
+      when: ansible_facts['memtotal_mb'] < (server.memory | float + 1) * 1024
     - name: Check existing Docker Compose
       ansible.builtin.command: docker compose version
       register: existing_compose
