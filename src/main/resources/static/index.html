@@ -55,13 +55,32 @@
             </div>
             <details class="advanced"><summary><span data-t="advanced">Дополнительные настройки</span><span aria-hidden="true">+</span></summary><div class="field-grid">
               <label class="field"><span data-t="players">Максимум игроков</span><input name="players" type="number" min="1" max="200" required></label>
-              <label class="field"><span data-t="viewDistance">Дальность прорисовки</span><span class="input-unit"><input name="viewDistance" type="number" min="2" max="24" required><span data-t="chunks">чанков</span></span></label>
+              <label class="field"><span data-t="spawnProtection">Защита спавна</span><span class="input-unit"><input name="spawnProtection" type="number" min="0" max="1024" required aria-describedby="spawn-protection-note"><span data-t="blocks">блоков</span></span><span class="hint" id="spawn-protection-note" data-t="spawnProtectionNote">Радиус вокруг спавна. 0 — отключить. Minecraft 1.4.2+.</span></label>
+              <label class="field"><span data-t="viewDistance">Дальность прорисовки</span><span class="input-unit"><input name="viewDistance" type="number" min="2" max="24" required aria-describedby="view-distance-note"><span data-t="chunks">чанков</span></span><span class="hint" id="view-distance-note" data-t="viewDistanceNote">Радиус чанков, отправляемых игроку.</span></label>
+              <label class="field"><span data-t="simulationDistance">Дальность симуляции</span><span class="input-unit"><input name="simulationDistance" type="number" min="3" max="32" required aria-describedby="simulation-distance-note"><span data-t="chunks">чанков</span></span><span class="hint" id="simulation-distance-note" data-t="simulationDistanceNote">Обновление мобов, блоков и жидкостей. Minecraft 1.18+.</span></label>
             </div></details>
           </section>
           <p class="platform-note" data-t="platform">Ubuntu 24.04 · Debian 12 / 13 · amd64 / arm64</p>
         </div>
         <aside class="extensions" aria-labelledby="options-heading">
           <h2 id="options-heading" data-t="options">Опции</h2>
+          <details class="addon option-group">
+            <summary class="option-heading"><span data-t="world">Мир</span><span aria-hidden="true">+</span></summary>
+            <div class="addon-settings option-fields">
+              <label class="field"><span data-t="seed">Seed</span><input name="seed" maxlength="128" spellcheck="false" aria-describedby="seed-note"><span class="hint" id="seed-note" data-t="seedNote">Пусто — случайный. Seed и тип мира применяются при создании мира.</span></label>
+              <label class="field"><span data-t="worldType">Тип мира</span><select name="worldType"></select></label>
+              <label class="addon-toggle compact-toggle"><span class="addon-copy"><strong data-t="pvp">PvP</strong></span><input type="checkbox" name="pvp" class="switch"></label>
+              <label class="addon-toggle compact-toggle"><span class="addon-copy"><strong data-t="hardcore">Hardcore</strong><span data-t="hardcoreNote">Без возрождения после смерти. Minecraft 1.3.1+.</span></span><input type="checkbox" name="hardcore" class="switch"></label>
+            </div>
+          </details>
+          <details class="addon option-group">
+            <summary class="option-heading"><span data-t="access">Доступ</span><span aria-hidden="true">+</span></summary>
+            <div class="addon-settings option-fields">
+              <label class="addon-toggle compact-toggle"><span class="addon-copy"><strong data-t="whitelist">Whitelist</strong><span data-t="whitelistHint">Разрешить подключение только указанным игрокам.</span></span><input type="checkbox" name="whitelist" class="switch" aria-controls="whitelist-settings"></label>
+              <div id="whitelist-settings" hidden><label class="field"><span data-t="whitelistPlayers">Ники игроков</span><input name="whitelistPlayers" placeholder="Steve,Alex" maxlength="1000" spellcheck="false" pattern="[A-Za-z0-9_]{3,16}(,[A-Za-z0-9_]{3,16})*"><span class="hint" data-t="whitelistNote">Через запятую, без пробелов.</span></label></div>
+              <label class="field"><span data-t="operators">Операторы</span><input name="operators" placeholder="Steve,Alex" maxlength="1000" spellcheck="false" pattern="[A-Za-z0-9_]{3,16}(,[A-Za-z0-9_]{3,16})*"><span class="hint" data-t="operatorsNote">Ники администраторов через запятую. Пусто — без операторов.</span></label>
+            </div>
+          </details>
           <div class="addon">
             <label class="addon-toggle"><span class="addon-copy"><strong data-t="backups">Резервное копирование</strong><span data-t="backupHint">Копирование по расписанию и срок хранения.</span></span><input type="checkbox" name="backups" class="switch" aria-controls="backup-settings"></label>
             <div class="addon-settings" id="backup-settings" hidden>
@@ -72,10 +91,6 @@
                 <label class="field"><span data-t="retention">Срок хранения</span><span class="input-unit"><input type="number" name="retention" min="1" max="90" required><span data-t="days">дней</span></span></label>
               </div>
             </div>
-          </div>
-          <div class="addon">
-            <label class="addon-toggle"><span class="addon-copy"><strong data-t="whitelist">Whitelist</strong><span data-t="whitelistHint">Разрешить подключение только указанным игрокам.</span></span><input type="checkbox" name="whitelist" class="switch" aria-controls="whitelist-settings"></label>
-            <div class="addon-settings" id="whitelist-settings" hidden><label class="field"><span data-t="whitelistPlayers">Ники игроков</span><input name="whitelistPlayers" placeholder="Steve,Alex" maxlength="1000" spellcheck="false" pattern="[A-Za-z0-9_]{3,16}(,[A-Za-z0-9_]{3,16})*"><span class="hint" data-t="whitelistNote">Через запятую, без пробелов.</span></label></div>
           </div>
           <section class="package">
             <div class="package-heading"><h3 data-t="archiveContents">Содержимое ZIP</h3><span class="mono" id="zip-name"></span></div>

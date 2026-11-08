@@ -39,9 +39,17 @@ public class ComposeFileGenerator implements BundleFileGenerator {
                       MEMORY: '%dM'
                       MAX_PLAYERS: '%d'
                       VIEW_DISTANCE: '%d'
+                      %s
                       DIFFICULTY: %s
                       MODE: %s
                       MOTD: %s
+                      SEED: %s
+                      LEVEL_TYPE: %s
+                      PVP: '%s'
+                      %s
+                      %s
+                      OPS: %s
+                      EXISTING_OPS_FILE: 'SYNCHRONIZE'
                       ONLINE_MODE: 'true'
                       ENABLE_RCON: 'true'
                       RCON_PASSWORD: ${RCON_PASSWORD:?Run sudo bash setup.sh first}
@@ -64,8 +72,13 @@ public class ComposeFileGenerator implements BundleFileGenerator {
                         max-file: '3'
                 """.formatted(
                     config.name, config.javaVersion(), config.port, quote(config.engine.id()), quote(config.version.id()),
-                    Math.round(config.memory * 1024), config.players, config.viewDistance, quote(config.difficulty.id()), quote(config.gameMode.id()),
-                    quote(config.motd), config.whitelist, config.whitelist, quote(config.whitelist ? config.whitelistPlayers : "")
+                    Math.round(config.memory * 1024), config.players, config.viewDistance,
+                    config.version.supportsSimulationDistance() ? "SIMULATION_DISTANCE: '%d'".formatted(config.simulationDistance) : "",
+                    quote(config.difficulty.id()), quote(config.gameMode.id()),
+                    quote(config.motd), quote(config.seed), quote(config.worldType.propertyValue(config.version)), config.pvp,
+                    config.version.supportsHardcore() ? "HARDCORE: '%s'".formatted(config.hardcore) : "",
+                    config.version.supportsSpawnProtection() ? "SPAWN_PROTECTION: '%d'".formatted(config.spawnProtection) : "",
+                    quote(config.operators), config.whitelist, config.whitelist, quote(config.whitelist ? config.whitelistPlayers : "")
                 );
         if (config.backup == BackupDestination.NONE) return text;
         text += """

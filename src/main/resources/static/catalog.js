@@ -33,5 +33,8 @@ export function restoreConfig(catalog, saved) {
   if (!versions.includes(restored.version)) {
     restored.version = versions.includes(catalog.defaults.version) ? catalog.defaults.version : versions[0];
   }
+  const version = catalog.versionDetails.find(version => version.id === restored.version);
+  if (!version.worldTypes.includes(restored.worldType)) restored.worldType = catalog.defaults.worldType;
+  if (!version.hardcoreSupported) restored.hardcore = false;
   return restored;
 }

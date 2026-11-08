@@ -69,11 +69,43 @@ class InitializerApiTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"name,../world", "engine,unknown", "version,unknown", "memory,0.5", "memory,32.5"})
+    @CsvSource({"name,../world", "engine,unknown", "version,unknown", "memory,0.5", "memory,32.5",
+        "viewDistance,1", "viewDistance,25", "simulationDistance,2", "simulationDistance,33", "worldType,unknown", "operators,bad name",
+        "spawnProtection,-1", "spawnProtection,1025"})
     void validation(String field, String value) throws Exception {
         mvc.perform(post("/api/preview").contentType("application/json")
                 .content(json.writeValueAsString(Map.of(field, value))))
             .andExpect(status().isBadRequest()).andExpect(jsonPath("$.errors." + field).exists());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1.17.1,false", "1.18,true", "26.3,true"})
+    void distances(String version, boolean simulationSupported) throws Exception {
+        var files = preview(json.writeValueAsString(Map.of(
+            "engine", "VANILLA", "version", version, "viewDistance", 12, "simulationDistance", 6)));
+        var compose = files.get("compose.yaml").asText();
+        assertThat(compose).contains("VIEW_DISTANCE: '12'");
+        if (simulationSupported) assertThat(compose).contains("SIMULATION_DISTANCE: '6'");
+        else assertThat(compose).doesNotContain("SIMULATION_DISTANCE");
+        assertThat(json.readTree(files.get("server.json").asText()).get("simulationDistance").asInt()).isEqualTo(6);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"1.16.5,large_biomes,largeBiomes", "1.19,large_biomes,minecraft:large_biomes",
+        "26.3,normal,minecraft:normal", "1.2.5,flat,flat"})
+    void world(String version, String type, String levelType) throws Exception {
+        var files = preview(json.writeValueAsString(Map.of(
+            "engine", "VANILLA", "version", version, "seed", "Bob's $HOME", "worldType", type,
+            "pvp", false, "hardcore", false, "operators", "Steve,Alex", "spawnProtection", 0)));
+        assertThat(files.get("compose.yaml").asText()).contains(
+            "SEED: 'Bob''s $$HOME'", "LEVEL_TYPE: '" + levelType + "'", "PVP: 'false'", "OPS: 'Steve,Alex'");
+        assertThat(json.readTree(files.get("server.json").asText()).get("seed").asText()).isEqualTo("Bob's $HOME");
+    }
+
+    @Test
+    void hardcore() throws Exception {
+        var compose = preview("{\"hardcore\":true,\"spawnProtection\":8}").get("compose.yaml").asText();
+        assertThat(compose).contains("HARDCORE: 'true'", "SPAWN_PROTECTION: '8'");
     }
 
     @ParameterizedTest

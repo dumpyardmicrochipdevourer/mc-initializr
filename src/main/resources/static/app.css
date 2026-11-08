@@ -74,6 +74,7 @@ legend { margin-bottom: 10px; }
 .field input, .field select { width: 100%; min-width: 0; height: 48px; padding: 0 14px; border: 1px solid transparent; border-radius: 6px; background: var(--input); color: var(--text); font-size: 16px; font-weight: 400; }
 .field input:hover, .field select:hover { border-color: var(--line-hover); }
 select { cursor: pointer; }
+input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
 .hint { color: var(--muted); font-size: 14px; line-height: 1.5; font-weight: 400; }
 .runtime-note { margin-top: 12px; }
 .form-section + .form-section { margin-top: 26px; padding-top: 26px; border-top: 1px solid var(--line); }
@@ -100,6 +101,12 @@ select { cursor: pointer; }
 .addon-settings { margin: 0 16px; padding: 18px 0; border-top: 1px solid var(--line); }
 .addon-settings .field-grid { margin-top: 16px; gap: 12px; }
 .addon-settings .field input, .addon-settings .field select { background: var(--card); }
+.option-heading { display: flex; align-items: center; justify-content: space-between; padding: 18px 16px; list-style: none; cursor: pointer; font-size: 16px; }
+.option-heading::-webkit-details-marker { display: none; }
+.option-heading > span:last-child { color: var(--muted); font-size: 20px; }
+.option-group[open] .option-heading > span:last-child { transform: rotate(45deg); }
+.option-fields { display: grid; gap: 16px; }
+.compact-toggle { padding: 0; }
 .segmented { display: flex; gap: 3px; padding: 3px; background: var(--card); border-radius: 6px; }
 .segmented label { position: relative; flex: 1; cursor: pointer; }
 .segmented input { position: absolute; opacity: 0; }

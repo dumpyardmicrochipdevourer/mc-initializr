@@ -11,11 +11,18 @@ public record ServerDefaults(
     int port,
     int players,
     int viewDistance,
+    int simulationDistance,
+    int spawnProtection,
     Difficulty difficulty,
     GameMode gameMode,
     String motd,
+    String seed,
+    WorldType worldType,
+    boolean pvp,
+    boolean hardcore,
     boolean whitelist,
     String whitelistPlayers,
+    String operators,
     BackupDestination backup,
     BackupInterval backupInterval,
     int retention,
@@ -24,8 +31,8 @@ public record ServerDefaults(
     public static ServerDefaults standard() {
         return new ServerDefaults(
             "my-world", ServerEngine.PAPER, MinecraftVersion.V26_1_2,
-            MemoryPreset.DEFAULT_GIB, 25565, 20, 10, Difficulty.NORMAL, GameMode.SURVIVAL,
-            "A Minecraft server", false, "", BackupDestination.NONE, BackupInterval.DAILY, 7, false
+            MemoryPreset.DEFAULT_GIB, 25565, 20, 10, 10, 16, Difficulty.NORMAL, GameMode.SURVIVAL,
+            "A Minecraft server", "", WorldType.NORMAL, true, false, false, "", "", BackupDestination.NONE, BackupInterval.DAILY, 7, false
         );
     }
 }

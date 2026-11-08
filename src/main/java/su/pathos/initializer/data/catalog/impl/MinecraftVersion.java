@@ -121,6 +121,10 @@ public enum MinecraftVersion implements CatalogOption {
     @Override
     public String id() { return id; }
     public Map<ServerEngine, Integer> javaVersions() { return javaVersions; }
+    public boolean isAtLeast(MinecraftVersion version) { return compareTo(version) <= 0; }
+    public boolean supportsSimulationDistance() { return isAtLeast(V1_18); }
+    public boolean supportsHardcore() { return isAtLeast(V1_3_1); }
+    public boolean supportsSpawnProtection() { return isAtLeast(V1_4_2); }
     public boolean supports(ServerEngine engine) { return javaVersions.containsKey(engine); }
 
     public int javaVersion(ServerEngine engine) {

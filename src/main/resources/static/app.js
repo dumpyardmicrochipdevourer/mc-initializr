@@ -26,9 +26,16 @@ function config() {
     port: Number(field('port').value),
     players: Number(field('players').value),
     viewDistance: Number(field('viewDistance').value),
+    simulationDistance: field('simulationDistance').disabled ? catalog.defaults.simulationDistance : Number(field('simulationDistance').value),
     gameMode: field('gameMode').value,
     difficulty: field('difficulty').value,
     motd: field('motd').value,
+    seed: field('seed').value,
+    worldType: field('worldType').value,
+    pvp: field('pvp').checked,
+    hardcore: field('hardcore').checked,
+    operators: field('operators').value,
+    spawnProtection: field('spawnProtection').disabled ? catalog.defaults.spawnProtection : Number(field('spawnProtection').value),
     whitelist: field('whitelist').checked,
     whitelistPlayers: field('whitelist').checked ? field('whitelistPlayers').value : '',
     backup: field('backups').checked ? field('backup').value : 'none',
@@ -56,6 +63,12 @@ function applyLanguage() {
 
 function update() {
   syncVersions();
+  syncWorldType();
+  const version = catalog.versionDetails.find(version => version.id === field('version').value);
+  field('simulationDistance').disabled = !version.simulationDistanceSupported;
+  field('spawnProtection').disabled = !version.spawnProtectionSupported;
+  field('hardcore').disabled = !version.hardcoreSupported;
+  if (!version.hardcoreSupported) field('hardcore').checked = false;
   const c = config();
   document.querySelector('#backup-settings').hidden = c.backup === 'none';
   document.querySelector('#whitelist-settings').hidden = !c.whitelist;
@@ -191,9 +204,17 @@ function syncVersions(selected = field('version').value) {
     : versions.includes(catalog.defaults.version) ? catalog.defaults.version : versions[0];
 }
 
+function syncWorldType(selected = field('worldType').value) {
+  const types = catalog.versionDetails.find(version => version.id === field('version').value).worldTypes;
+  const current = Array.from(field('worldType').options, option => option.value);
+  if (current.join() !== types.join()) fillSelect('worldType', types, type => `worldType.${type}`);
+  field('worldType').value = types.includes(selected) ? selected : catalog.defaults.worldType;
+}
+
 function applyConfig(config) {
   field('engine').value = config.engine;
   syncVersions(config.version);
+  syncWorldType(config.worldType);
   for (const [key, value] of Object.entries(config)) {
     if (key === 'backup') continue;
     const input = field(key);
@@ -211,7 +232,10 @@ function fillSelect(name, values, translationKey = () => null) {
   field(name).replaceChildren(...values.map(value => {
     const option = new Option(value, value);
     const key = translationKey(value);
-    if (key && translations.en[key]) option.dataset.t = key;
+    if (key && translations.en[key]) {
+      option.dataset.t = key;
+      option.textContent = t(key);
+    }
     return option;
   }));
 }
