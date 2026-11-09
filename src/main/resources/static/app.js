@@ -183,6 +183,7 @@ document.querySelector('#copy-file').addEventListener('click', async () => {
 });
 document.querySelector('#help').addEventListener('click', () => document.querySelector('#help-dialog').showModal());
 for (const button of document.querySelectorAll('[data-close]')) button.addEventListener('click', () => button.closest('dialog').close());
+document.querySelector('#download-dialog').addEventListener('close', event => { const video = event.target.querySelector('iframe'); video.src = video.src; });
 for (const dialog of document.querySelectorAll('dialog')) dialog.addEventListener('click', event => {
   if (event.target === dialog) {
     const r = dialog.getBoundingClientRect();
